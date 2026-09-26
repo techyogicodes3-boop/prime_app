@@ -11,7 +11,7 @@ import {readListings,findListing,findListingBySubmissionKey,saveListing,deleteLi
 import {hashPassword,checkPassword,sessionFor,createSession,destroySession,cookie} from './auth.js';
 import {defaults,options,textFields,validate,isVisible,publicRecord} from './contracts/properties-schema.js';
 import {mailConfigured,whatsappNumber,whatsappLink} from './notifications.js';
-
+ 
 const frontendDist=fileURLToPath(new URL('../app/dist/',import.meta.url));
 const propertyBase=['/api/properties','/api/Properties'];
 // eslint-disable-next-line no-control-regex

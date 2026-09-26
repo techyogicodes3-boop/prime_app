@@ -2,7 +2,6 @@ services:
   - type: web
     name: prism-api
     runtime: node
-    rootDir: api
     buildCommand: npm ci
     startCommand: npm start
     healthCheckPath: /api/health
@@ -25,7 +24,7 @@ services:
   - type: web
     name: prism-app
     runtime: static
-    rootDir: app
+    repo: https://github.com/techyogicodes3-boop/prime_frontend.git
     buildCommand: npm ci && npm run build
     staticPublishPath: dist
     routes:
