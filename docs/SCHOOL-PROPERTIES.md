@@ -14,4 +14,4 @@ Admin routes:
 
 Property records, uploaded media, submissions, notifications and sessions are stored in MongoDB. Run `npm run db:migrate` after configuring Atlas; the operation is idempotent. Public submissions remain pending and unpublished until approved by an administrator.
 
-The API validates every mutation, protects administrator writes with an HttpOnly session and CSRF token, rate-limits authentication and submissions, and keeps applicant contact details out of public responses.
+The API validates every mutation, protects administrator writes with short-lived signed bearer tokens, rate-limits authentication and submissions, and keeps applicant contact details out of public responses. User account authentication remains cookie-session based.

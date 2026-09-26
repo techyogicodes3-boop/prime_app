@@ -8,7 +8,7 @@ import sharp from 'sharp';
 import {randomBytes,randomUUID,createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {readListings,findListing,findListingBySubmissionKey,saveListing,deleteListing} from './db.js';
-import {hashPassword,checkPassword,sessionFor,createSession,destroySession,cookie} from './auth.js';
+import {hashPassword,checkPassword,sessionFor,createSession,destroySession,cookie,createAdminToken,adminFromToken} from './auth.js';
 import {defaults,options,textFields,validate,isVisible,publicRecord} from './contracts/properties-schema.js';
 import {mailConfigured,whatsappNumber,whatsappLink} from './notifications.js';
  
@@ -38,7 +38,7 @@ export function createApp(db){
       res.vary('Origin');
     }
     res.set('Access-Control-Allow-Methods','GET, POST, PUT, DELETE, OPTIONS');
-    res.set('Access-Control-Allow-Headers','Content-Type, Idempotency-Key, X-CSRF-Token');
+    res.set('Access-Control-Allow-Headers','Content-Type, Idempotency-Key, X-CSRF-Token, Authorization');
     if(req.method==='OPTIONS')return res.sendStatus(204);
     next();
   });
@@ -49,7 +49,11 @@ export function createApp(db){
     if(!['GET','HEAD'].includes(req.method)&&req.headers['x-csrf-token']!==req.session.csrf)return res.status(403).json({error:'Session verification failed. Refresh and try again.'});
     next();
   };
-  const adminAuth=requireSession('admin');
+  const adminAuth=async(req,res,next)=>{
+    req.admin=await adminFromToken(db,req);
+    if(!req.admin)return res.status(401).json({error:'Please sign in.'});
+    next();
+  };
   const userAuth=requireSession('user');
   const dummyHash=hashPassword(randomBytes(32).toString('hex'));
 
@@ -60,11 +64,10 @@ export function createApp(db){
     const valid=await checkPassword(password,admin?.passwordHash||await dummyHash);
     if(!admin||!valid)return res.status(401).json({error:'Invalid email or password.'});
     if(!admin.active||admin.role!=='admin')return res.status(403).json({error:'This account is not authorized.'});
-    const session=await createSession(db,admin._id,'admin');
-    res.set('Set-Cookie',cookie(session.token,8*60*60)).json({username,csrf:session.csrf});
+    res.json({username,token:createAdminToken(admin)});
   });
-  app.get('/api/admin/session',adminAuth,(req,res)=>res.json({username:req.session.username,csrf:req.session.csrf}));
-  app.post('/api/admin/logout',adminAuth,async(req,res)=>{await destroySession(db,req);res.set('Set-Cookie',cookie('',0)).json({ok:true});});
+  app.get('/api/admin/session',adminAuth,(req,res)=>res.json(req.admin));
+  app.post('/api/admin/logout',(_req,res)=>res.json({ok:true}));
 
   app.post('/api/auth/register',limiter(8,60*60*1000),async(req,res)=>{
     const name=clean(req.body?.name),email=clean(req.body?.email).toLowerCase(),password=typeof req.body?.password==='string'?req.body.password:'';
@@ -116,7 +119,7 @@ export function createApp(db){
   app.get('/api/media/:id',async(req,res)=>{
     const media=await db.collection('propertyMedia').findOne({_id:req.params.id});
     const record=media&&await findListing(db,media.listingId);
-    if(!media||(!isVisible(record)&&!await sessionFor(db,req)))return res.sendStatus(404);
+    if(!media||(!isVisible(record)&&!await sessionFor(db,req)&&!await adminFromToken(db,req)))return res.sendStatus(404);
     res.set('Content-Type',media.mime).set('X-Content-Type-Options','nosniff').send(Buffer.from(media.bytes?.buffer||media.bytes));
   });
   app.post(['/api/properties/submissions','/api/submissions'],limiter(12,60*60*1000),upload,async(req,res)=>{
