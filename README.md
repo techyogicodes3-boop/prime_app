@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Prism deployment
 
 The repository root contains only `app/` and `api/` (plus Git metadata). Deploy as two Render services:
@@ -12,3 +13,6 @@ Set `MONGODB_URI` and `ADMIN_PASSWORD` in the API service's Render Environment s
 Copy `api/.env.example` to `api/.env` for local API development. From `api/`, run `npm ci`, `npm run dev`, `npm run db:migrate`, or `npm run admin:set`. From `app/`, run `npm ci`, `npm run dev`, or `npm run build`. The frontend uses relative `/api` requests; do not place backend secrets in frontend environment variables.
 
 After the first deployment, open the API service Shell and run `npm run admin:set` once to provision the administrator from `ADMIN_USERNAME` and `ADMIN_PASSWORD`.
+=======
+# prime_app
+>>>>>>> 0cb7190419c345e0a39f4b5f92c96f7d03d61db7
