@@ -48,5 +48,6 @@ export async function destroySession(db,req){
 }
 
 export function cookie(value,maxAge){
-  return `${COOKIE_NAME}=${value}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${maxAge}${process.env.NODE_ENV==='production'?'; Secure':''}`;
+  const production=process.env.NODE_ENV==='production';
+  return `${COOKIE_NAME}=${value}; Path=/; HttpOnly; SameSite=${production?'None':'Strict'}; Max-Age=${maxAge}${production?'; Secure':''}`;
 }

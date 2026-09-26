@@ -11,7 +11,7 @@ services:
       - key: PORT
         value: 10000
       - key: APP_ORIGIN
-        value: https://prism-app.onrender.com
+        value: https://prime-frontend-16cn.onrender.com
       - key: MONGODB_URI
         sync: false
       - key: SESSION_SECRET
@@ -28,9 +28,6 @@ services:
     buildCommand: npm ci && npm run build
     staticPublishPath: dist
     routes:
-      - type: rewrite
-        source: /api/*
-        destination: https://prism-api.onrender.com/api/*
       - type: rewrite
         source: /*
         destination: /index.html

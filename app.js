@@ -24,15 +24,22 @@ export function createApp(db){
   const app=express();
   app.disable('x-powered-by');
   if(process.env.TRUST_PROXY==='1')app.set('trust proxy',1);
-  app.use(helmet({contentSecurityPolicy:false}));
+  app.use(helmet({contentSecurityPolicy:false,crossOriginResourcePolicy:{policy:'cross-origin'}}));
   app.use('/api',(_req,res,next)=>{res.set('Cache-Control','no-store');next();});
   app.use(express.json({limit:'120kb'}));
   app.use('/api',(req,res,next)=>{
-    if(!['GET','HEAD','OPTIONS'].includes(req.method)){
-      const allowed=new Set([process.env.APP_ORIGIN||'http://localhost:5173']);
-      if(process.env.NODE_ENV!=='production')allowed.add('http://127.0.0.1:5173').add('http://localhost:5173');
-      if(req.headers.origin&&!allowed.has(req.headers.origin))return res.status(403).json({error:'Request origin is not permitted.'});
+    const allowed=new Set([process.env.APP_ORIGIN||'http://localhost:5173']);
+    if(process.env.NODE_ENV!=='production')allowed.add('http://127.0.0.1:5173').add('http://localhost:5173');
+    const origin=req.headers.origin;
+    if(origin&&!allowed.has(origin))return res.status(403).json({error:'Request origin is not permitted.'});
+    if(origin){
+      res.set('Access-Control-Allow-Origin',origin);
+      res.set('Access-Control-Allow-Credentials','true');
+      res.vary('Origin');
     }
+    res.set('Access-Control-Allow-Methods','GET, POST, PUT, DELETE, OPTIONS');
+    res.set('Access-Control-Allow-Headers','Content-Type, Idempotency-Key, X-CSRF-Token');
+    if(req.method==='OPTIONS')return res.sendStatus(204);
     next();
   });
 

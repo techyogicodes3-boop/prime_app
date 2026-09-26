@@ -6,7 +6,7 @@ The app and API are separate repositories. This repository is the backend (`prim
 - API web service: build `npm ci`, start `npm start`, health check `/api/health`.
 - Frontend static site: build `npm ci && npm run build`, publish directory `dist`.
 
-For Blueprint setup, choose `render.yaml` as the Blueprint file path in Render. It configures both GitHub repositories and routes frontend `/api/*` requests to the backend, so browser fetches and session cookies remain same-origin.
+For Blueprint setup, choose `render.yaml` as the Blueprint file path in Render. The frontend connects directly to the backend, so no frontend API rewrite is required.
 
 Set `MONGODB_URI` and `ADMIN_PASSWORD` in the API service's Render Environment settings. `SESSION_SECRET` is generated in the Blueprint; `APP_ORIGIN` must match the frontend URL (`https://prism-app.onrender.com`) or be updated for a custom domain. Set optional SMTP and WhatsApp environment variables only when those integrations are required. Configure MongoDB Atlas Network Access to allow the deployed API.
 
