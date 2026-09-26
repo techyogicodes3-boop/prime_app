@@ -1,0 +1,17 @@
+/* Homepage-only presentation. */
+#home-materials.home-school-mart{position:relative;isolation:isolate;overflow:hidden;padding:clamp(3.5rem,7vw,6rem) 0;background:radial-gradient(ellipse at 10% 15%,#e5eff7,transparent 55%),radial-gradient(ellipse at 95% 90%,#fff0d0,transparent 50%),#f8fafc;color:#42566a}
+#home-materials::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.3;background-image:linear-gradient(#b8cbd533 1px,transparent 1px),linear-gradient(90deg,#b8cbd533 1px,transparent 1px);background-size:40px 40px}
+#home-materials .sm-home-heading{display:block;text-align:center;margin-bottom:2.5rem}
+#home-materials .school-mart-emblem{display:grid;place-items:center;width:64px;height:64px;margin:0 auto 1.25rem;border:1px solid #e7d5ad;border-radius:20px;background:#fff8e9;color:#8b6218;box-shadow:0 8px 24px #10263f08}
+#home-materials #home-materials-title{font-size:clamp(2.6rem,5.5vw,4.5rem);font-weight:800;line-height:1.12;letter-spacing:-.035em;color:#10263f;margin:0}
+#home-materials .school-mart-subtitle{font-size:clamp(1.2rem,2.4vw,1.8rem);font-weight:600;line-height:1.4;color:#31506c;margin-top:1rem}
+#home-materials .sm-heading p:last-child{margin:1rem auto 0;max-width:720px;font-size:clamp(.95rem,1.4vw,1.1rem);line-height:1.8}
+#home-materials .sm-footer-actions{gap:14px;margin-top:2.5rem}
+#home-materials .sm-footer-actions .sm-button{min-height:50px;padding:14px 24px;border-radius:12px;background:#10263f;border-color:#10263f;color:#fff;box-shadow:0 6px 18px #10263f12;transition:transform .2s ease,box-shadow .2s ease,background .2s ease}
+#home-materials .sm-footer-actions .sm-secondary{background:#fff;color:#10263f;border-color:#bccbd8}
+#home-materials .sm-footer-actions .sm-button:first-child{background:#eeb640;border-color:#eeb640;color:#10263f}
+#home-materials .sm-footer-actions .sm-button:focus-visible{outline:3px solid #286e9f;outline-offset:4px}
+@media(hover:hover){#home-materials .sm-footer-actions .sm-button:hover{transform:translateY(-3px);box-shadow:0 12px 24px #10263f20}#home-materials .sm-footer-actions .sm-secondary:hover{background:#edf3f8}#home-materials .sm-footer-actions .sm-button:first-child:hover{background:#f3c663}}
+@media(max-width:620px){#home-materials .sm-footer-actions{flex-direction:column;align-items:stretch}#home-materials .sm-footer-actions .sm-button{width:100%}}
+@media(prefers-reduced-motion:reduce){#home-materials .sm-footer-actions .sm-button{transition:none;transform:none}}
+

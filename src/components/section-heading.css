@@ -1,0 +1,10 @@
+/* Only explicitly opted-in section/page headings use this visual system. */
+.prism-section-heading.prism-section-heading{display:block!important;width:100%;max-width:960px!important;min-width:0;font-family:'Roboto',sans-serif!important;font-size:30px!important;font-weight:800!important;line-height:1.2!important;letter-spacing:-.025em!important;text-align:center!important;text-wrap:balance;overflow-wrap:anywhere;white-space:normal!important;margin:0 auto 20px!important;padding:0 0 36px!important;border:0!important}
+.prism-section-subtitle.prism-section-subtitle{font-family:'Roboto',sans-serif!important;font-size:16px!important;font-weight:500!important;line-height:1.7!important;letter-spacing:normal!important;text-align:center!important;text-wrap:pretty;max-width:760px!important;margin:0 auto 24px!important;overflow-wrap:anywhere;white-space:normal}
+.prism-heading-group{width:100%;max-width:960px;margin:0 auto 36px;text-align:center}
+.prism-heading-group>.section-kicker{margin:0 0 14px;text-align:center}
+/* Centre existing heading-only wrappers without rearranging content grids. */
+div:has(>.prism-section-heading):not(:has(>article,>form,>section,>img,>button)){margin-inline:auto}
+div:has(>.prism-section-heading)>.section-kicker,div:has(>.prism-section-heading)>.eyebrow{text-align:center;display:block}
+@media(min-width:768px){.prism-section-heading.prism-section-heading{font-size:36px!important}.prism-section-subtitle.prism-section-subtitle{font-size:18px!important}}
+@media(min-width:1024px){.prism-section-heading.prism-section-heading{font-size:46px!important}.prism-section-subtitle.prism-section-subtitle{font-size:20px!important}}

@@ -1,0 +1,31 @@
+.home-about-prism{background:radial-gradient(ellipse at 8% 20%,rgba(238,182,64,.1),transparent 48%),linear-gradient(125deg,#f8fbfd 0%,#eff6f8 55%,#fffaf0 100%)}
+.home-about-prism .home-about-title{display:inline-block;margin:0;color:#10263f;font-size:clamp(1.9rem,3.5vw,2.9rem);font-weight:800;line-height:1.15;letter-spacing:.025em;padding-bottom:.5rem}
+.home-about-prism .home-about-subtitle{margin-top:1.25rem;color:#31506c;font-size:clamp(1.2rem,2vw,1.6rem);font-weight:600;line-height:1.45}
+.home-about-prism .home-about-tagline{margin-top:1rem;max-width:36rem;padding-left:1rem;border-left:3px solid #eeb640;color:#46616c;font-size:clamp(.95rem,1.3vw,1.05rem);font-weight:500;line-height:1.7}
+.home-about-prism .home-about-photo>img{transition:transform .35s ease,box-shadow .35s ease}
+@media(hover:hover){.home-about-prism .home-about-photo>img:hover{transform:translateY(-3px)}}
+.home-about-prism.is-visible .home-about-copy,.home-about-prism.is-visible .home-about-photo{animation:home-about-enter .65s ease-out both}
+.home-about-prism.is-visible .home-about-tagline{animation:home-about-enter .65s .15s ease-out both}
+@keyframes home-about-enter{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){.home-about-prism.is-visible .home-about-copy,.home-about-prism.is-visible .home-about-photo,.home-about-prism.is-visible .home-about-tagline{animation:none}.home-about-prism .home-about-photo>img{transition:none;transform:none!important}}
+
+/* Keep the homepage rhythm compact and consistent without affecting inner pages. */
+.home-page{font-family:'Roboto',sans-serif}
+.home-page>section:not(.prism-home-hero){padding-top:clamp(3rem,5vw,4.5rem)!important;padding-bottom:clamp(3rem,5vw,4.5rem)!important}
+.home-page .prism-section-heading{max-width:900px!important;margin:0 auto 1rem!important;padding:0!important;font-size:clamp(1.75rem,3.2vw,2.5rem)!important;line-height:1.16!important}
+.home-page .prism-section-subtitle{margin:0 auto 1.125rem!important;font-size:clamp(1rem,1.5vw,1.125rem)!important;line-height:1.65!important}
+.home-page .prism-heading-group{max-width:900px;margin-bottom:1.75rem}
+.home-page .ecosystem-card{min-height:225px;padding:1.25rem}
+.home-page .service-showcase-card{min-height:400px;padding:1.5rem}
+.home-page .service-showcase-card h3{font-size:1.35rem}
+@media(max-width:767px){
+  .home-page>section:not(.prism-home-hero){padding-top:3rem!important;padding-bottom:3rem!important}
+  .home-page .prism-heading-group{margin-bottom:1.5rem}
+  .home-page .ecosystem-card,.home-page .service-showcase-card{min-height:0}
+  .home-page .home-about-photo>img{height:390px}
+  .home-page .home-about-subtitle{font-size:1.08rem}
+}
+@media(max-width:390px){
+  .home-page .section-heading{font-size:1.7rem!important}
+  .home-page .home-about-photo>img{height:350px}
+}

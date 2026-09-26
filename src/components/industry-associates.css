@@ -1,0 +1,22 @@
+.mart-associates{background:linear-gradient(135deg,#f1f6fa,#f7f9f0 55%,#fff9ed);color:#10263f;scroll-margin-top:110px}
+.mart-associates .associate-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:1rem}
+.mart-associates .associate-card{min-width:0;padding:1.35rem;border:1px solid #dce5ea;border-radius:1.15rem;background:#ffffffeb;box-shadow:0 5px 18px #10263f08;opacity:1;transform:none;transition:opacity .5s ease,transform .5s ease,box-shadow .25s ease,border-color .25s ease}
+.mart-associates .associate-card-top{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1rem}
+.mart-associates .associate-icon{display:grid;place-items:center;width:42px;height:42px;border-radius:12px;background:#e8f1fa;color:#28618a}
+.mart-associates .associate-card:nth-child(4n+2) .associate-icon{background:#eef4e4;color:#526e27}
+.mart-associates .associate-card:nth-child(4n+3) .associate-icon{background:#fff2d8;color:#8a631a}
+.mart-associates .associate-card:nth-child(4n) .associate-icon{background:#f0eafa;color:#675088}
+.mart-associates .associate-number{font-size:.8rem;font-weight:800;letter-spacing:.08em;color:#607388}
+.mart-associates .associate-card h3{font-size:1.05rem;font-weight:800;line-height:1.4;margin:0 0 .65rem;overflow-wrap:anywhere}
+.mart-associates .associate-card p{font-size:.9rem;line-height:1.65;color:#526477;margin:0;overflow-wrap:anywhere}
+.mart-associates .associate-card.associate-pending{opacity:0;transform:translateY(14px)}
+.mart-associates .associate-cta{margin-top:2rem;padding:clamp(1.25rem,3vw,2rem);border:1px solid #d7e2e9;border-radius:1.25rem;background:#ffffffb8;text-align:center}
+.mart-associates .associate-cta p{max-width:800px;margin:0 auto 1.4rem;line-height:1.75;color:#31506c}
+.mart-associates .associate-cta>div{display:flex;justify-content:center;flex-wrap:wrap;gap:.8rem}
+.mart-associates .associate-cta a{white-space:normal;text-align:center;justify-content:center;max-width:100%}
+.mart-associates .associate-cta a svg{flex-shrink:0}
+@media(min-width:600px){.mart-associates .associate-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(min-width:900px){.mart-associates .associate-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(min-width:1280px){.mart-associates .associate-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(hover:hover){.mart-associates .associate-card:not(.associate-pending):hover{transform:translateY(-4px);box-shadow:0 12px 28px #10263f14;border-color:#b8cbd8}}
+@media(prefers-reduced-motion:reduce){.mart-associates .associate-card,.mart-associates .associate-card.associate-pending,.mart-associates .associate-card:hover{opacity:1;transform:none;transition:none}}

@@ -1,0 +1,15 @@
+.about-page-redesign .about-awards-section{background:radial-gradient(ellipse at 8% 10%,#e6eef7,transparent 45%),radial-gradient(ellipse at 95% 85%,#f7e8c7,transparent 45%),#faf9f5}
+#about-awards .recognition-card{display:flex;flex-direction:column}
+#about-awards .recognition-image{flex:none;overflow:hidden}
+#about-awards .recognition-copy{flex:1}
+#about-awards .award-lightbox{position:fixed;inset:0;width:min(1100px,96vw);max-width:96vw;max-height:94svh;margin:auto;padding:3.5rem 3.5rem 1.5rem;border:1px solid #d8e0e6;border-radius:1.25rem;background:#fff;color:#10263f}
+#about-awards .award-lightbox::backdrop{background:#10263fcc}
+#about-awards .award-lightbox figure{margin:auto;text-align:center}
+#about-awards .award-lightbox img{display:block;margin:auto;max-height:70svh;max-width:100%;object-fit:contain}
+#about-awards .award-lightbox figcaption{margin-top:1rem;font-size:.88rem}
+#about-awards :is(.award-lightbox-close,.award-lightbox-arrow){position:absolute;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;border:1px solid #c4d1da;background:#f0f5f7;color:#10263f}
+#about-awards .award-lightbox-close{top:.65rem;right:.65rem}
+#about-awards .award-lightbox-arrow{top:50%;transform:translateY(-50%)}
+#about-awards :is(button,a):focus-visible{outline:3px solid #b8790c;outline-offset:4px}
+@media(max-width:639px){#about-awards .award-lightbox{padding:3.5rem .75rem 4.5rem}#about-awards .award-lightbox img{max-height:65svh}#about-awards .award-lightbox-arrow{top:auto;bottom:.8rem;transform:none}}
+

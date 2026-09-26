@@ -1,0 +1,17 @@
+.about-page-redesign .about-leadership-grid{grid-template-columns:minmax(0,1fr)}
+.about-page-redesign.about-page-redesign{overflow:clip;margin-top:0;padding-top:0}
+.about-page-redesign .about-introduction{margin-top:0}
+.about-page-redesign .about-introduction h1{margin-top:0;font-size:clamp(2.65rem,5.3vw,5.25rem);font-weight:800;overflow-wrap:break-word}
+.about-page-redesign .about-experience-heading{color:#f3c35d;font-size:clamp(1rem,1.6vw,1.25rem);font-weight:700;line-height:1.6}
+.about-page-redesign .about-experience-intro{color:#eef4fa}
+.about-page-redesign #about-team{background:none}
+.about-page-redesign .about-core-team-title{text-align:center;color:#10263f;font-size:clamp(2.2rem,4.5vw,3.75rem);font-weight:800;line-height:1.15;margin:0}
+.about-page-redesign .about-leadership-grid .about-detailed-profile{display:flex;flex-direction:column}
+.about-page-redesign .about-leadership-grid .about-detailed-profile>img{flex:none;min-height:0;object-fit:contain}
+.about-leadership-grid .about-detailed-profile{min-width:0}
+.about-leadership-grid .about-detailed-profile>img{height:360px;object-fit:contain;object-position:center;background:#eef2f5}
+.about-leadership-grid .about-detailed-profile>div{padding:1.5rem}
+.about-leadership-grid .about-profile-copy p{font-size:.9375rem;line-height:1.8}
+.about-leadership-grid .about-expertise-list{margin-top:1rem}
+@media(min-width:1024px){.about-page-redesign .about-leadership-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:479px){.about-leadership-grid .about-detailed-profile>img{height:320px}.about-leadership-grid .about-detailed-profile>div{padding:1.25rem}}

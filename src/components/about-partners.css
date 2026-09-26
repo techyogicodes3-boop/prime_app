@@ -1,0 +1,28 @@
+/* Scoped to the About Us Partners section only. */
+.about-page-redesign #about-partners{background:radial-gradient(ellipse at 10% 10%,#e8f0f7,transparent 55%),linear-gradient(135deg,#f8fafc,#fff9ed);color:#10263f}
+#about-partners .partners-heading{max-width:850px;margin:auto;text-align:center}
+#about-partners .partners-heading h2{font-size:clamp(2.3rem,4.5vw,3.75rem);font-weight:800;line-height:1.15;color:#10263f}
+#about-partners .partners-heading .partners-subheading{margin-top:1rem;font-size:clamp(1.1rem,2vw,1.5rem);font-weight:600;line-height:1.5;color:#31506c}
+#about-partners .partners-heading>p:last-child{margin:1rem auto 0;max-width:760px;color:#526477;line-height:1.8}
+#about-partners .about-partner-grid{grid-template-columns:minmax(0,1fr);gap:1.5rem;align-items:stretch}
+#about-partners .about-partner-grid article{display:flex;flex-direction:column;min-width:0;padding:clamp(1.5rem,3vw,2.5rem);background:#ffffffed;border:1px solid #dce5ec;border-top:3px solid #eeb640;border-radius:1.5rem;box-shadow:0 12px 32px #10263f0d;transition:transform .25s ease,box-shadow .25s ease}
+#about-partners .about-partner-grid h3{margin:0;color:#10263f;font-size:clamp(1.4rem,2.2vw,1.8rem);font-weight:800;line-height:1.3}
+#about-partners .about-partner-grid strong{display:block;margin-top:.75rem;min-height:3.2em;color:#8b5e1d;font-size:.95rem;line-height:1.6}
+#about-partners .about-partner-grid p{color:#526477;font-size:.95rem;line-height:1.8;margin-top:1.25rem}
+#about-partners .partners-highlight{align-self:flex-start;margin-top:1.25rem;border-radius:999px;padding:.45rem .85rem;background:#fff3d6;color:#755012;font-size:.8rem;font-weight:800}
+#about-partners .about-partner-grid a{display:inline-flex;align-items:center;gap:.5rem;align-self:flex-start;margin-top:auto;padding-top:1.5rem;color:#10263f;font-weight:700;font-size:.9rem}
+#about-partners .about-partner-grid a:focus-visible{outline:3px solid #b8790c;outline-offset:5px}
+@media(min-width:1024px){#about-partners .about-partner-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(hover:hover){#about-partners .about-partner-grid article:hover{transform:translateY(-4px);box-shadow:0 20px 40px #10263f18}}
+@media(prefers-reduced-motion:reduce){#about-partners .about-partner-grid article{transition:none;transform:none}}
+
+/* Compact informational profiles, scoped to this section. */
+#about-partners .about-partner-grid{grid-auto-rows:1fr;max-width:1120px;margin-inline:auto}
+#about-partners .about-partner-grid article{padding:clamp(1.25rem,3vw,2rem);background:linear-gradient(145deg,#f2f7fb,#fff);border-top-color:#5682a3}
+#about-partners .about-partner-grid article:nth-child(2){background:linear-gradient(145deg,#faf7ee,#fff);border-top-color:#d7ad4c}
+#about-partners .about-partner-grid strong{min-height:0;margin-top:.6rem;color:#425d72;font-size:1rem;line-height:1.5}
+#about-partners .partners-highlight{margin-top:1rem;background:#fff0cd;color:#735017}
+#about-partners .partner-services{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem;list-style:none;padding:0;margin:1.3rem 0 0}
+#about-partners .partner-services li{display:flex;align-items:center;justify-content:center;min-height:2.8rem;padding:.6rem .75rem;border:1px solid #cfdee8;border-radius:1.5rem;background:#ffffffc9;color:#29465c;font-size:.82rem;font-weight:600;line-height:1.4;text-align:center;overflow-wrap:anywhere;transition:background-color .2s ease,border-color .2s ease}
+@media(hover:hover){#about-partners .partner-services li:hover{background:#eaf2f7;border-color:#91afc4}}
+@media(prefers-reduced-motion:reduce){#about-partners .partner-services li{transition:none}}
