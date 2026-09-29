@@ -101,6 +101,16 @@ export function createApp(db){
     res.status(201).json({ok:true,message:'Thank you. Your enquiry has been received.'});
   });
 
+  app.get('/api/resources',async(_req,res)=>{
+    const items=await db.collection('resources').find({status:'Published'}).sort({date:-1,createdAt:-1}).toArray();
+    res.json({items:items.map(resourceRecord)});
+  });
+  app.get('/api/resources/:slug',async(req,res)=>{
+    const item=await db.collection('resources').findOne({slug:req.params.slug,status:'Published'});
+    if(!item)return res.status(404).json({error:'Resource not found.'});
+    res.json(resourceRecord(item));
+  });
+
   app.get(propertyBase.map(path=>path+'/config'),(_req,res)=>res.json({whatsappNumber:whatsappNumber(),emailConfigured:Boolean(mailConfigured()),options}));
   app.get(propertyBase,async(req,res)=>{
     let records=(await readListings(db)).filter(item=>isVisible(item,req.query.featured!=='true'));
@@ -141,6 +151,29 @@ export function createApp(db){
 
   registerMaterials(app,db,{adminAuth,upload,parseData,prepareImages});
   app.use('/api/admin',adminAuth);
+  app.get('/api/admin/resources',async(_req,res)=>{
+    const items=await db.collection('resources').find({}).sort({updatedAt:-1}).toArray();
+    res.json({items:items.map(resourceRecord)});
+  });
+  app.post('/api/admin/resources',async(req,res)=>{
+    const item=prepareResource(req.body),fields=validateResource(item);
+    if(Object.keys(fields).length)return res.status(422).json({error:'Please correct the highlighted fields.',fields});
+    await db.collection('resources').insertOne({_id:item.id,...item});
+    res.status(201).json(item);
+  });
+  app.put('/api/admin/resources/:id',async(req,res)=>{
+    const previous=await db.collection('resources').findOne({_id:req.params.id});
+    if(!previous)return res.status(404).json({error:'Resource not found.'});
+    if(req.body?.updatedAt!==previous.updatedAt)return res.status(409).json({error:'This resource changed since you opened it. Reload and try again.'});
+    const item=prepareResource(req.body,previous),fields=validateResource(item);
+    if(Object.keys(fields).length)return res.status(422).json({error:'Please correct the highlighted fields.',fields});
+    await db.collection('resources').replaceOne({_id:req.params.id},{_id:item.id,...item});
+    res.json(item);
+  });
+  app.delete('/api/admin/resources/:id',async(req,res)=>{
+    const result=await db.collection('resources').deleteOne({_id:req.params.id});
+    res.status(result.deletedCount?200:404).json(result.deletedCount?{ok:true}:{error:'Resource not found.'});
+  });
   app.get('/api/admin/listings',async(req,res)=>{
     let records=await readListings(db);
     const counts={total:records.length};
@@ -198,6 +231,28 @@ export function createApp(db){
 function filterRecords(records,query){
   const keyword=clean(query.q).toLowerCase(),location=clean(query.location).toLowerCase();
   return records.filter(item=>(!keyword||[item.title,item.reference,item.location,item.city,item.district,item.description].join(' ').toLowerCase().includes(keyword))&&(!location||[item.location,item.city,item.district].join(' ').toLowerCase().includes(location))&&(!query.type||item.type===query.type)&&(!query.propertyType||item.propertyType===query.propertyType)&&(!query.transaction||item.transaction===clean(query.transaction))&&(query.urgent!=='true'||item.urgent)&&(!query.minArea||item.area>=Number(query.minArea))&&(!query.maxArea||item.area<=Number(query.maxArea))&&(!query.areaUnit||item.areaUnit===query.areaUnit));
+}
+
+function resourceRecord(document){
+  const item={...document};delete item._id;return item;
+}
+
+function prepareResource(data={},previous=null){
+  const now=new Date().toISOString(),id=previous?.id||randomUUID(),title=clean(data.title),type=clean(data.type);
+  const slugBase=clean(data.slug)||title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'')||id;
+  return {id,slug:previous?.slug||(slugBase+'-'+id.slice(0,8)),type,title,description:clean(data.description),content:clean(data.content),url:clean(data.url),image:clean(data.image),category:clean(data.category)||type,date:clean(data.date)||now.slice(0,10),author:clean(data.author),status:data.status==='Published'?'Published':'Draft',featured:data.featured===true,webinarStatus:type==='Webinars'&&data.webinarStatus==='Upcoming'?'Upcoming':'',createdAt:previous?.createdAt||now,updatedAt:new Date(Math.max(Date.now(),Date.parse(previous?.updatedAt||0)+1)).toISOString()};
+}
+
+function validateResource(item){
+  const fields={};
+  if(!['Blogs','Webinars','Videos'].includes(item.type))fields.type='Choose Blogs, Webinars or Videos.';
+  if(!item.title||item.title.length>180)fields.title='Enter a title up to 180 characters.';
+  if(item.description.length>1000)fields.description='Use no more than 1,000 characters.';
+  if(item.content.length>30000)fields.content='Use no more than 30,000 characters.';
+  if(item.type!=='Blogs'&&!item.url)fields.url='Add the webinar or video link.';
+  for(const key of ['url','image'])if(item[key]){try{if(new URL(item[key]).protocol!=='https:')throw Error();}catch{fields[key]='Use a valid HTTPS URL.';}}
+  if(item.date&&!/^\d{4}-\d{2}-\d{2}$/.test(item.date))fields.date='Use a valid date.';
+  return fields;
 }
 
 export function parseData(req){

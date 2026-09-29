@@ -36,6 +36,8 @@ async function ensureIndexes(db){
     db.collection('notifications').createIndex({listingId:1}),
     db.collection('materials').createIndex({creationKey:1},{unique:true,sparse:true}),
     db.collection('materialMedia').createIndex({listingId:1}),
+    db.collection('resources').createIndex({slug:1},{unique:true}),
+    db.collection('resources').createIndex({status:1,type:1,date:-1}),
     db.collection('migrations').createIndex({name:1},{unique:true}),
   ]);
 }
