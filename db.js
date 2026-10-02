@@ -38,6 +38,9 @@ async function ensureIndexes(db){
     db.collection('materialMedia').createIndex({listingId:1}),
     db.collection('resources').createIndex({slug:1},{unique:true}),
     db.collection('resources').createIndex({status:1,type:1,date:-1}),
+    db.collection('resourceMedia').createIndex({resourceId:1}),
+    db.collection('coPartners').createIndex({displayOrder:1,createdAt:1}),
+    db.collection('coPartnerMedia').createIndex({partnerId:1}),
     db.collection('migrations').createIndex({name:1},{unique:true}),
   ]);
 }

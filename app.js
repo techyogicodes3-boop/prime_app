@@ -17,6 +17,7 @@ const propertyBase=['/api/properties','/api/Properties'];
 // eslint-disable-next-line no-control-regex
 const clean=value=>String(value??'').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g,'').trim();
 const upload=multer({storage:multer.memoryStorage(),limits:{fileSize:8*1024*1024,files:10,fields:2,fieldSize:100000},fileFilter:(_req,file,done)=>['image/jpeg','image/png','image/webp'].includes(file.mimetype)?done(null,true):done(Object.assign(Error('Use JPEG, PNG or WebP images.'),{status:422,fields:{images:'Unsupported image type.'}}))}).array('images',10);
+const uploadImage=multer({storage:multer.memoryStorage(),limits:{fileSize:8*1024*1024,files:1,fields:2,fieldSize:100000},fileFilter:(_req,file,done)=>['image/jpeg','image/png','image/webp'].includes(file.mimetype)?done(null,true):done(Object.assign(Error('Use a JPEG, PNG or WebP image.'),{status:422,fields:{image:'Unsupported image type.'}}))}).single('image');
 const limiter=(limit,windowMs)=>rateLimit({windowMs,limit,standardHeaders:'draft-8',legacyHeaders:false,message:{error:'Too many requests. Please try again later.'}});
 
 export function createApp(db){
@@ -110,6 +111,23 @@ export function createApp(db){
     if(!item)return res.status(404).json({error:'Resource not found.'});
     res.json(resourceRecord(item));
   });
+  app.get('/api/resource-media/:id',async(req,res)=>{
+    const media=await db.collection('resourceMedia').findOne({_id:req.params.id});
+    const resource=media&&await db.collection('resources').findOne({_id:media.resourceId});
+    if(!media||!resource)return res.sendStatus(404);
+    res.set('Content-Type',media.mime).set('X-Content-Type-Options','nosniff').send(Buffer.from(media.bytes?.buffer||media.bytes));
+  });
+  app.get('/api/co-partners',async(_req,res)=>{
+    await ensureDefaultCoPartners(db);
+    const items=await db.collection('coPartners').find({}).sort({displayOrder:1,createdAt:1}).toArray();
+    res.json({items:items.map(coPartnerRecord)});
+  });
+  app.get('/api/co-partner-media/:id',async(req,res)=>{
+    const media=await db.collection('coPartnerMedia').findOne({_id:req.params.id});
+    const partner=media&&await db.collection('coPartners').findOne({_id:media.partnerId});
+    if(!media||!partner)return res.sendStatus(404);
+    res.set('Content-Type',media.mime).set('X-Content-Type-Options','nosniff').send(Buffer.from(media.bytes?.buffer||media.bytes));
+  });
 
   app.get(propertyBase.map(path=>path+'/config'),(_req,res)=>res.json({whatsappNumber:whatsappNumber(),emailConfigured:Boolean(mailConfigured()),options}));
   app.get(propertyBase,async(req,res)=>{
@@ -155,24 +173,66 @@ export function createApp(db){
     const items=await db.collection('resources').find({}).sort({updatedAt:-1}).toArray();
     res.json({items:items.map(resourceRecord)});
   });
-  app.post('/api/admin/resources',async(req,res)=>{
-    const item=prepareResource(req.body),fields=validateResource(item);
+  app.post('/api/admin/resources',uploadImage,async(req,res)=>{
+    const data=parseData(req),item=prepareResource(data),fields=validateResource(item);
     if(Object.keys(fields).length)return res.status(422).json({error:'Please correct the highlighted fields.',fields});
+    const image=req.file&&(await prepareImages([req.file]))[0];
+    if(image)item.imageId=image.id;
     await db.collection('resources').insertOne({_id:item.id,...item});
+    if(image)await db.collection('resourceMedia').insertOne({_id:image.id,resourceId:item.id,bytes:image.bytes,mime:image.mime});
     res.status(201).json(item);
   });
-  app.put('/api/admin/resources/:id',async(req,res)=>{
+  app.put('/api/admin/resources/:id',uploadImage,async(req,res)=>{
     const previous=await db.collection('resources').findOne({_id:req.params.id});
     if(!previous)return res.status(404).json({error:'Resource not found.'});
-    if(req.body?.updatedAt!==previous.updatedAt)return res.status(409).json({error:'This resource changed since you opened it. Reload and try again.'});
-    const item=prepareResource(req.body,previous),fields=validateResource(item);
+    const data=parseData(req);
+    if(data.updatedAt!==previous.updatedAt)return res.status(409).json({error:'This resource changed since you opened it. Reload and try again.'});
+    const item=prepareResource(data,previous),fields=validateResource(item);
     if(Object.keys(fields).length)return res.status(422).json({error:'Please correct the highlighted fields.',fields});
+    const image=req.file&&(await prepareImages([req.file]))[0],oldImageId=previous.imageId;
+    if(image)item.imageId=image.id;
     await db.collection('resources').replaceOne({_id:req.params.id},{_id:item.id,...item});
+    if(image)await db.collection('resourceMedia').insertOne({_id:image.id,resourceId:item.id,bytes:image.bytes,mime:image.mime});
+    if(oldImageId&&oldImageId!==item.imageId)await db.collection('resourceMedia').deleteOne({_id:oldImageId});
     res.json(item);
   });
   app.delete('/api/admin/resources/:id',async(req,res)=>{
     const result=await db.collection('resources').deleteOne({_id:req.params.id});
+    if(result.deletedCount)await db.collection('resourceMedia').deleteMany({resourceId:req.params.id});
     res.status(result.deletedCount?200:404).json(result.deletedCount?{ok:true}:{error:'Resource not found.'});
+  });
+  app.get('/api/admin/co-partners',async(_req,res)=>{
+    await ensureDefaultCoPartners(db);
+    const items=await db.collection('coPartners').find({}).sort({displayOrder:1,createdAt:1}).toArray();
+    res.json({items:items.map(coPartnerRecord)});
+  });
+  app.post('/api/admin/co-partners',uploadImage,async(req,res)=>{
+    const data=parseData(req),item=prepareCoPartner(data),image=req.file&&(await prepareImages([req.file]))[0];
+    if(image)item.imageId=image.id;
+    const fields=validateCoPartner(item);
+    if(Object.keys(fields).length)return res.status(422).json({error:'Please correct the highlighted fields.',fields});
+    await db.collection('coPartners').insertOne({_id:item.id,...item});
+    if(image)await db.collection('coPartnerMedia').insertOne({_id:image.id,partnerId:item.id,bytes:image.bytes,mime:image.mime});
+    res.status(201).json(item);
+  });
+  app.put('/api/admin/co-partners/:id',uploadImage,async(req,res)=>{
+    const previous=await db.collection('coPartners').findOne({_id:req.params.id});
+    if(!previous)return res.status(404).json({error:'Co-partner not found.'});
+    const data=parseData(req);
+    if(data.updatedAt!==previous.updatedAt)return res.status(409).json({error:'This co-partner changed since you opened it. Reload and try again.'});
+    const item=prepareCoPartner(data,previous),image=req.file&&(await prepareImages([req.file]))[0],oldImageId=previous.imageId;
+    if(image){item.imageId=image.id;item.image='';}
+    const fields=validateCoPartner(item);
+    if(Object.keys(fields).length)return res.status(422).json({error:'Please correct the highlighted fields.',fields});
+    await db.collection('coPartners').replaceOne({_id:req.params.id},{_id:item.id,...item});
+    if(image)await db.collection('coPartnerMedia').insertOne({_id:image.id,partnerId:item.id,bytes:image.bytes,mime:image.mime});
+    if(oldImageId&&oldImageId!==item.imageId)await db.collection('coPartnerMedia').deleteOne({_id:oldImageId});
+    res.json(item);
+  });
+  app.delete('/api/admin/co-partners/:id',async(req,res)=>{
+    const result=await db.collection('coPartners').deleteOne({_id:req.params.id});
+    if(result.deletedCount)await db.collection('coPartnerMedia').deleteMany({partnerId:req.params.id});
+    res.status(result.deletedCount?200:404).json(result.deletedCount?{ok:true}:{error:'Co-partner not found.'});
   });
   app.get('/api/admin/listings',async(req,res)=>{
     let records=await readListings(db);
@@ -240,7 +300,8 @@ function resourceRecord(document){
 function prepareResource(data={},previous=null){
   const now=new Date().toISOString(),id=previous?.id||randomUUID(),title=clean(data.title),type=clean(data.type);
   const slugBase=clean(data.slug)||title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'')||id;
-  return {id,slug:previous?.slug||(slugBase+'-'+id.slice(0,8)),type,title,description:clean(data.description),content:clean(data.content),url:clean(data.url),image:clean(data.image),category:clean(data.category)||type,date:clean(data.date)||now.slice(0,10),author:clean(data.author),status:data.status==='Published'?'Published':'Draft',featured:data.featured===true,webinarStatus:type==='Webinars'&&data.webinarStatus==='Upcoming'?'Upcoming':'',createdAt:previous?.createdAt||now,updatedAt:new Date(Math.max(Date.now(),Date.parse(previous?.updatedAt||0)+1)).toISOString()};
+  const imageId=previous&&!data.removeImage&&data.imageId===previous.imageId?previous.imageId:'';
+  return {id,slug:previous?.slug||(slugBase+'-'+id.slice(0,8)),type,title,description:clean(data.description),content:clean(data.content),url:clean(data.url),image:clean(data.image),imageId,category:clean(data.category)||type,date:clean(data.date)||now.slice(0,10),author:clean(data.author),status:data.status==='Published'?'Published':'Draft',featured:data.featured===true,webinarStatus:type==='Webinars'&&data.webinarStatus==='Upcoming'?'Upcoming':'',createdAt:previous?.createdAt||now,updatedAt:new Date(Math.max(Date.now(),Date.parse(previous?.updatedAt||0)+1)).toISOString()};
 }
 
 function validateResource(item){
@@ -249,9 +310,42 @@ function validateResource(item){
   if(!item.title||item.title.length>180)fields.title='Enter a title up to 180 characters.';
   if(item.description.length>1000)fields.description='Use no more than 1,000 characters.';
   if(item.content.length>30000)fields.content='Use no more than 30,000 characters.';
-  if(item.type!=='Blogs'&&!item.url)fields.url='Add the webinar or video link.';
+  if(item.type==='Videos'&&!item.url)fields.url='Add the video link.';
   for(const key of ['url','image'])if(item[key]){try{if(new URL(item[key]).protocol!=='https:')throw Error();}catch{fields[key]='Use a valid HTTPS URL.';}}
   if(item.date&&!/^\d{4}-\d{2}-\d{2}$/.test(item.date))fields.date='Use a valid date.';
+  return fields;
+}
+
+const defaultCoPartners=[
+  {_id:'default-prince-nx',id:'default-prince-nx',title:'Prince NX',description:'Books & Stationery Partner',image:'/images/co-patners/WhatsApp Image 2026-09-28 at 8.04.09 PM.jpeg',imageId:'',displayOrder:0},
+  {_id:'default-eduvate',id:'default-eduvate',title:'Eduvate',description:'K-12 Techno Services & Curriculum Partner',image:'/images/co-patners/WhatsApp Image 2026-09-28 at 9.59.50 PM.jpeg',imageId:'',displayOrder:1},
+];
+
+async function ensureDefaultCoPartners(db){
+  const migration='003-default-co-partners';
+  if(await db.collection('migrations').findOne({name:migration}))return;
+  const now=new Date().toISOString();
+  if(await db.collection('coPartners').countDocuments()===0){
+    for(const item of defaultCoPartners)await db.collection('coPartners').updateOne({_id:item._id},{$setOnInsert:{...item,createdAt:now,updatedAt:now}},{upsert:true});
+  }
+  try{await db.collection('migrations').insertOne({name:migration,appliedAt:new Date()});}catch(error){if(error.code!==11000)throw error;}
+}
+
+function coPartnerRecord(document){
+  const item={...document};delete item._id;return item;
+}
+
+function prepareCoPartner(data={},previous=null){
+  const now=new Date().toISOString(),id=previous?.id||randomUUID();
+  return {id,title:clean(data.title),description:clean(data.description),image:previous?.image||'',imageId:previous?.imageId||'',displayOrder:Number.isFinite(Number(data.displayOrder))?Number(data.displayOrder):0,createdAt:previous?.createdAt||now,updatedAt:new Date(Math.max(Date.now(),Date.parse(previous?.updatedAt||0)+1)).toISOString()};
+}
+
+function validateCoPartner(item){
+  const fields={};
+  if(item.title.length<2||item.title.length>120)fields.title='Enter a title from 2 to 120 characters.';
+  if(item.description.length>500)fields.description='Use no more than 500 characters.';
+  if(!item.image&&!item.imageId)fields.image='Upload a co-partner image.';
+  if(!Number.isSafeInteger(item.displayOrder)||item.displayOrder<0||item.displayOrder>9999)fields.displayOrder='Use a display order from 0 to 9999.';
   return fields;
 }
 
