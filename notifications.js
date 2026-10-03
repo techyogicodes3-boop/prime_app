@@ -1,11 +1,39 @@
 import nodemailer from 'nodemailer';
 import {findListing} from './db.js';
 export const mailConfigured = () => ['SMTP_HOST','MAIL_FROM','PRISM_NOTIFICATION_EMAIL','APP_ORIGIN'].every(key=>process.env[key]);
+export const enquiryMailConfigured = () => ['SMTP_HOST','SMTP_USER','SMTP_PASSWORD','MAIL_FROM'].every(key=>process.env[key]);
 export const whatsappNumber = () => /^\d{8,15}$/.test(process.env.PRISM_WHATSAPP_NUMBER || '') ? process.env.PRISM_WHATSAPP_NUMBER : '';
+const mailTransport = () => nodemailer.createTransport({host:process.env.SMTP_HOST,port:Number(process.env.SMTP_PORT || 587),secure:process.env.SMTP_SECURE==='true',requireTLS:process.env.SMTP_SECURE!=='true',auth:{user:process.env.SMTP_USER,pass:process.env.SMTP_PASSWORD},connectionTimeout:10000,socketTimeout:15000});
 export function whatsappLink(record) {
   if (!whatsappNumber()) return null;
   const message=`Hello Prism Edu Consultancy,\n\nI have submitted a ${record.type==='Properties Required'?'School Properties Requirement':'Property Listing'}.\n\nReference Number: ${record.reference}\nName: ${record.contactName}\nOrganization: ${record.ownerName || ''}\nLocation: ${record.location}\nRequired/Available Area: ${record.area} ${record.areaUnit}\nTransaction Preference: ${record.transaction}\nPhone Number: ${record.phone}\nShort Description: ${(record.summary || record.description).slice(0,180)}\n\nPlease review my submission and contact me.`;
   return `https://wa.me/${whatsappNumber()}?text=${encodeURIComponent(message)}`;
+}
+export async function sendEnquiryEmail(record,testTransport) {
+  if (!enquiryMailConfigured()) return {sent:false,reason:'not_configured'};
+  const transport=testTransport || mailTransport();
+  const recipient=process.env.ENQUIRY_TO_EMAIL || 'info@prismedu.in';
+  const text=[
+    'A new enquiry was submitted through the Prism Edu website.',
+    '',
+    `Name: ${record.name}`,
+    `Email: ${record.email || 'Not provided'}`,
+    `Phone: ${record.phone || 'Not provided'}`,
+    `School / Organization: ${record.organization || 'Not provided'}`,
+    `City / Location: ${record.location || 'Not provided'}`,
+    `Enquiry Type: ${record.topic}`,
+    '',
+    'Message:',
+    record.message,
+    '',
+    `Received: ${record.createdAt.toISOString()}`,
+  ].join('\n');
+  try {
+    await transport.sendMail({from:process.env.MAIL_FROM,to:recipient,replyTo:record.email || undefined,subject:`New Prism Edu enquiry — ${record.topic}`,text});
+    return {sent:true};
+  } finally {
+    if(!testTransport)transport.close();
+  }
 }
 export async function deliverNotifications(db, testTransport) {
   if (!mailConfigured()) return;

@@ -10,7 +10,7 @@ import {fileURLToPath} from 'node:url';
 import {readListings,findListing,findListingBySubmissionKey,saveListing,deleteListing} from './db.js';
 import {hashPassword,checkPassword,sessionFor,createSession,destroySession,cookie,createAdminToken,adminFromToken} from './auth.js';
 import {defaults,options,textFields,validate,isVisible,publicRecord} from './contracts/properties-schema.js';
-import {mailConfigured,whatsappNumber,whatsappLink} from './notifications.js';
+import {mailConfigured,whatsappNumber,whatsappLink,sendEnquiryEmail} from './notifications.js';
  
 const frontendDist=fileURLToPath(new URL('../app/dist/',import.meta.url));
 const propertyBase=['/api/properties','/api/Properties'];
@@ -96,10 +96,19 @@ export function createApp(db){
 
   app.post('/api/enquiries',limiter(12,60*60*1000),async(req,res)=>{
     const payload=req.body&&typeof req.body==='object'?req.body:{};
-    const name=clean(payload.name),email=clean(payload.email),phone=clean(payload.phone),message=clean(payload.message),topic=clean(payload.topic||'General enquiry');
+    const name=clean(payload.name),email=clean(payload.email),phone=clean(payload.phone),message=clean(payload.message),topic=clean(payload.topic||'General enquiry'),organization=clean(payload.organization),location=clean(payload.location);
     if(name.length<2||(!email&&!phone)||message.length<10)return res.status(422).json({error:'Enter your name, email or phone, and a short message.'});
-    await db.collection('enquiries').insertOne({_id:randomUUID(),name,email,phone,message,topic,status:'New',createdAt:new Date()});
-    res.status(201).json({ok:true,message:'Thank you. Your enquiry has been received.'});
+    const enquiry={_id:randomUUID(),name,email,phone,organization,location,message,topic,status:'New',emailStatus:'pending',createdAt:new Date()};
+    await db.collection('enquiries').insertOne(enquiry);
+    try{
+      const delivery=await sendEnquiryEmail(enquiry);
+      if(!delivery.sent){await db.collection('enquiries').updateOne({_id:enquiry._id},{$set:{emailStatus:'awaiting_configuration'}});return res.status(503).json({error:'Your enquiry was saved, but email delivery is not configured yet. Please contact info@prismedu.in.'});}
+      await db.collection('enquiries').updateOne({_id:enquiry._id},{$set:{emailStatus:'sent',emailSentAt:new Date()}});
+      res.status(201).json({ok:true,message:'Email sent successfully. We will reach you as soon as possible.'});
+    }catch{
+      await db.collection('enquiries').updateOne({_id:enquiry._id},{$set:{emailStatus:'failed'}});
+      res.status(502).json({error:'Your enquiry was saved, but the email could not be sent. Please try again or email info@prismedu.in.'});
+    }
   });
 
   app.get('/api/resources',async(_req,res)=>{
